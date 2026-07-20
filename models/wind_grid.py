@@ -1,5 +1,6 @@
+from pathlib import Path
+
 import numpy as np
-import sys
 from pydantic import BaseModel, ConfigDict
 
 from models.wind_grid_response import WindGridResponse
@@ -25,21 +26,28 @@ class WindGrid(BaseModel):
 
     u: np.ndarray
     v: np.ndarray
+
+    cycle: str = "00"
+    cycle_date: str = "1972"
     
-    @property
-    def memory_usage_mb(self) -> float:
-        """Возвращает точный размер объекта в Мегабайтах"""
-        # 1. Считаем вес тяжелых массивов NumPy (в байтах)
-        u_bytes = self.u.nbytes if isinstance(self.u, np.ndarray) else 0
-        v_bytes = self.v.nbytes if isinstance(self.v, np.ndarray) else 0
-        
-        # 2. Считаем вес самого Python-объекта и его простых атрибутов
-        scalar_bytes = sys.getsizeof(self) + sys.getsizeof(self.__dict__)
-        
-        total_bytes = u_bytes + v_bytes + scalar_bytes
-        # Переводим байты в мегабайты
-        return round(total_bytes / (1024 * 1024), 2)
-    
+    @staticmethod
+    def load(path: Path):
+        data = np.load(path, mmap_mode="r")
+
+        return WindGrid(
+            min_lon=float(data["min_lon"]),
+            max_lon=float(data["max_lon"]),
+            min_lat=float(data["min_lat"]),
+            max_lat=float(data["max_lat"]),
+            dx=float(data["dx"]),
+            dy=float(data["dy"]),
+            nx=int(data["nx"]),
+            ny=int(data["ny"]),
+            u=data["u"],
+            v=data["v"],
+            cycle=data["cycle"].item(),
+            cycle_date=data["cycle_date"].item()
+        )    
 
     def _mercator_to_lon(self, x: np.ndarray) -> np.ndarray:
         return np.degrees(x / R)

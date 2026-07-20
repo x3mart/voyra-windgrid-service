@@ -6,3 +6,5 @@ venv/
 *.idx
 .venv
 .mypy_cache
+.vscode
+*.log
