@@ -8,5 +8,5 @@ class WindRequest(BaseModel):
     min_y: float
     max_y: float
 
-    nx: int = 256
-    ny: int = 256
+    nx: int = 128
+    ny: int = 128
